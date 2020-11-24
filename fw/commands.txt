@@ -1,0 +1,9 @@
+# Set SMS mode to text
+AT+CMGF=1
+
+# Send SMS in text mode
+AT+CMGS="<phone number>"<CR>
+Message<CTRL+Z>
+
+# List stored SMS
+AT+CMGL="ALL"

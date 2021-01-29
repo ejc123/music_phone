@@ -2,9 +2,11 @@ defmodule Phone.Listener do
   use GenServer
   require Logger
 
+  @spec start_link(any) :: :ignore | {:error, any} | {:ok, pid}
   def start_link(opts), do: GenServer.start_link(__MODULE__, opts, name: :listener)
 
   @impl GenServer
+  @spec init(any) :: {:ok, {-1, false}, {:continue, :start}}
   def init(_state) do
     Logger.debug("Listener Started, PID: #{inspect(self())}")
     {:ok, {-1, false}, {:continue, :start}}
@@ -13,27 +15,10 @@ defmodule Phone.Listener do
   # Handle messages from UART
 
   @impl GenServer
+  @spec handle_continue(:start, any) :: {:noreply, any}
   def handle_continue(:start, state) do
-    :timer.sleep(500)
+    :timer.sleep(200)
     GenServer.cast(:board , :listener_started)
-    {:noreply, state}
-  end
-
-  @impl GenServer
-  def handle_info({:circuits_uart, _pid, <<_::binary-10>> <> "1,1," <> <<rest::binary>>}, state) do
-    Logger.info("***Rec: #{inspect(rest)}")
-    {:noreply, state}
-  end
-
-  @impl GenServer
-  def handle_info({:circuits_uart, _pid, <<_::binary-10>> <> "1,0," <> <<rest::binary>>}, state) do
-    Logger.info("***No Fix: #{inspect(rest)}")
-    {:noreply, state}
-  end
-
-  @impl GenServer
-  def handle_info({:circuits_uart, _pid, <<_::binary-10>> <> "0," <> <<rest::binary>>}, state) do
-    Logger.info("***N/C: #{inspect(rest)}")
     {:noreply, state}
   end
 

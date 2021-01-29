@@ -12,7 +12,6 @@ defmodule Phone.Application do
     children = [
       Phone.Board,
       Phone.Listener,
-      Phone.GPS,
       Phone.Phone,
     ]
 

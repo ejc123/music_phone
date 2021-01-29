@@ -1,13 +1,12 @@
 defmodule Phone.Board do
   use GenServer
 
-  alias Phone.GPS
   alias Phone.Phone
   alias Circuits.UART
   alias Circuits.GPIO
 
   @moduledoc """
-    Set up Modem/GPS board
+    Set up Modem board
   """
   require Logger
 
@@ -15,13 +14,14 @@ defmodule Phone.Board do
   def start_link(opts), do: GenServer.start_link(__MODULE__, opts, name: :board)
 
   @impl GenServer
-  @spec init(any) :: {:ok, {0, 0, 0, 0}, {:continue, :start}}
+  @spec init(any) :: {:ok, {0, 0, 0}, {:continue, :start}}
   def init(_state) do
-    {:ok, {0, 0, 0, 0}, {:continue, :start}}
+    {:ok, {0, 0, 0}, {:continue, :start}}
   end
 
   # GenServer callbacks
   @impl GenServer
+  @spec handle_continue(:start, any) :: {:noreply, {pid, reference, 0}}
   def handle_continue(:start, _state) do
     tty = "ttyAMA0"
 
@@ -32,31 +32,30 @@ defmodule Phone.Board do
       id: :pid
     ]
 
-    {uart_pid, gpio, gps_pid, phone_pid} = start(tty, options)
-    {:noreply, {uart_pid, gpio, gps_pid, phone_pid}}
+    {uart_pid, gpio, phone_pid} = start(tty, options)
+    {:noreply, {uart_pid, gpio, phone_pid}}
   end
 
   @impl GenServer
-  def handle_cast(:listener_started, {uart_pid, _gpio, _gps_pid, _phone_pid} = state) do
+  def handle_cast(:listener_started, {uart_pid, _gpio, _phone_pid} = state) do
     Logger.info("***Board starting listener")
     Logger.info("***Board Listener: #{inspect(Process.whereis(:listener))}")
     UART.controlling_process(uart_pid, Process.whereis(:listener))
-    Nerves.Runtime.validate_firmware()
-    :timer.sleep(1500)
+    :timer.sleep(200)
     GenServer.cast(self(), :start_phone)
-    #GenServer.cast(self(), :start_gps)
+    Nerves.Runtime.validate_firmware()
     {:noreply, state}
   end
 
   @impl GenServer
-  def handle_cast(:start, {uart_pid, _gpio, _gps_pid, _phone_pid} = state) do
+  def handle_cast(:start, {uart_pid, _gpio, _phone_pid} = state) do
     Logger.info("***Board got start uart_pid: #{inspect(uart_pid)}")
     {:noreply, state}
   end
 
   @impl GenServer
-  def handle_cast(:start_phone, {uart_pid, gpio, gps_pid, phone_pid} = state) when phone_pid == 0 do
-    {:noreply, {uart_pid, gpio, gps_pid, Phone.start(uart_pid)}}
+  def handle_cast(:start_phone, {uart_pid, gpio, phone_pid} = _state) when phone_pid == 0 do
+    {:noreply, {uart_pid, gpio, Phone.start(uart_pid)}}
   end
 
   @impl GenServer
@@ -65,21 +64,10 @@ defmodule Phone.Board do
     {:noreply, state}
   end
 
-  def handle_cast(:start_gps, {uart_pid, gpio, gps_pid, phone_pid} = state) when gps_pid == 0 do
-    Logger.info("***start_gps: #{inspect(state)}")
-    {:noreply, {uart_pid, gpio, GPS.start(uart_pid), phone_pid}}
-  end
-
   @impl GenServer
-  def handle_cast(:start_gps, state) do
-    Logger.info("***Board start_gps")
-    {:noreply, state}
-  end
-
-  @impl GenServer
-  def handle_cast(:stop_gps, {uart_pid, gpio, _gps_pid, phone_pid} = _state) do
-    GPS.stop()
-    {:noreply, {uart_pid, gpio, 0, phone_pid}}
+  def handle_cast(:stop_phone, {uart_pid, gpio, _phone_pid} = _state) do
+    Phone.stop()
+    {:noreply, {uart_pid, gpio, 0}}
   end
 
   # private functions
@@ -109,7 +97,7 @@ defmodule Phone.Board do
 
     Logger.debug("***UART open")
     reset(uart_pid)
-    {uart_pid, gpio, 0, 0}
+    {uart_pid, gpio, 0}
   end
 
   # Reset Modem

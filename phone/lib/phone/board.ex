@@ -47,6 +47,12 @@ defmodule Phone.Board do
   end
 
   @impl GenServer
+  def handle_cast(:start, {uart_pid, _gpio, _gps_pid, _phone_pid} = state) do
+    Logger.info("***Board got start")
+    {:noreply, state}
+  end
+
+  @impl GenServer
   def handle_cast(:start_phone, {uart_pid, gpio, gps_pid, phone_pid} = state) when phone_pid == 0 do
     Logger.info("***start_phone: #{inspect(state)}")
     {:noreply, {uart_pid, gpio, gps_pid, Phone.start(uart_pid)}}

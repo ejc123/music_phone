@@ -20,23 +20,23 @@ defmodule Phone.Phone do
   def start(uart_pid) do
     Logger.debug("***Phone: start self PID: #{inspect(self())}")
     Logger.debug("***Phone: start GPS PID: #{inspect(Phone.GPS)}")
-    GenServer.cast(self(), {:start, uart_pid})
+    GenServer.cast(:phone, {:start, uart_pid})
     self()
   end
 
   @spec stop :: :ok
   def stop() do
-    GenServer.cast(self(), :stop)
+    GenServer.cast(:phone, :stop)
   end
 
   @spec answer :: :ok
   def answer() do
-    GenServer.cast(self(), :answer)
+    GenServer.cast(:phone, :answer)
   end
 
   @spec hangup :: :ok
   def hangup() do
-    GenServer.cast(self(), :hangup)
+    GenServer.cast(:phone, :hangup)
   end
 
   # Server
@@ -68,17 +68,16 @@ defmodule Phone.Phone do
   def handle_cast(:play_audio, state) do
     Logger.debug("***Phone :play_audio")
     Toolshed.cmd("aplay -q /srv/erlang/lib/phone-0.1.0/priv/test.wav")
-    # GenServer.cast({:global, Fw.Listener},{:play, "/srv/erlang/lib/phone-0.1.0/priv/test.wav"})
     {:noreply, state}
   end
 
   @impl GenServer
-  def handle_cast(:start, uart_pid = state) do
+  def handle_cast({:start, uart_pid}, _state) do
     Logger.debug("***Phone :start")
     ## Set up calling line presentation (caller id)
     UART.write(uart_pid, "AT+CLIP=1")
     :timer.sleep(500)
-    {:noreply, state}
+    {:noreply, uart_pid}
   end
 
   @impl GenServer

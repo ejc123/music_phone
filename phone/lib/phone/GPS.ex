@@ -11,12 +11,15 @@ defmodule Phone.GPS do
   def start_link, do: start_link([])
   def start_link(opts), do: GenServer.start_link(__MODULE__, opts, name: :gps)
 
+  @spec start(any) :: pid
   def start(pid) do
     Logger.debug("***GPS: start self PID: #{inspect(self())}")
     Logger.debug("***GPS: start GPS PID: #{inspect(Phone.GPS)}")
     GenServer.cast(:gps, {:start, pid})
+    self()
   end
 
+  @spec stop :: :ok
   def stop() do
     GenServer.cast(:gps, :stop)
   end

@@ -15,7 +15,7 @@ defmodule Phone.Listener do
   @impl GenServer
   def handle_continue(:start, state) do
     :timer.sleep(500)
-    GenServer.cast(:board, :start_listener)
+    GenServer.cast(:board , :listener_started)
     {:noreply, state}
   end
 
@@ -34,6 +34,12 @@ defmodule Phone.Listener do
   @impl GenServer
   def handle_info({:circuits_uart, _pid, <<_::binary-10>> <> "0," <> <<rest::binary>>}, state) do
     Logger.info("***N/C: #{inspect(rest)}")
+    {:noreply, state}
+  end
+
+  @impl GenServer
+  def handle_info({:circuits_uart, _pid, "RING"}, state) do
+    Logger.info("*** Ringing" , state)
     {:noreply, state}
   end
 

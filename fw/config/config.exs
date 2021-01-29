@@ -4,8 +4,9 @@
 # This configuration file is loaded before any dependency and
 # is restricted to this project.
 import Config
+import_config "../../phone/config/config.exs"
 
-config :phone_test, target: Mix.target()
+config :fw, target: Mix.target()
 
 # Customize non-Elixir parts of the firmware. See
 # https://hexdocs.pm/nerves/advanced-configuration.html for details.

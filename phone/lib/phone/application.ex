@@ -13,10 +13,10 @@ defmodule Phone.Application do
       Phone.Board,
       Phone.Listener,
       Phone.GPS,
+      Phone.Phone,
     ]
 
     opts = [strategy: :one_for_one, name: Phone.Supervisor]
     Supervisor.start_link(children, opts)
-    Nerves.Runtime.validate_firmware()
   end
 end

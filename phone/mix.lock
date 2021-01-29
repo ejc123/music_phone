@@ -1,0 +1,6 @@
+%{
+  "circuits_gpio": {:hex, :circuits_gpio, "0.4.6", "e4c37e49f5f76d662db90f9c4bcf51d6537681bb0dd2a00238598eb35b15e084", [:make, :mix], [{:elixir_make, "~> 0.6", [hex: :elixir_make, repo: "hexpm", optional: false]}], "hexpm", "cd2c9d7f16530d40218ccc2d2f727079439adf5df7bacc90c5a6197b40b06e9b"},
+  "circuits_uart": {:hex, :circuits_uart, "1.4.2", "520817daced77620bc036c168eb42b55ba4b4c141c2de47a199895a35a86e690", [:mix], [{:elixir_make, "~> 0.6", [hex: :elixir_make, repo: "hexpm", optional: false]}], "hexpm", "d3da86c9ef9ef196150797c7de1c7a7d367ebcd0de44f325c36def8654976c06"},
+  "elixir_make": {:hex, :elixir_make, "0.6.2", "7dffacd77dec4c37b39af867cedaabb0b59f6a871f89722c25b28fcd4bd70530", [:mix], [], "hexpm", "03e49eadda22526a7e5279d53321d1cced6552f344ba4e03e619063de75348d9"},
+  "elixircom": {:hex, :elixircom, "0.2.0", "875a76186a700f7f1ec8e34efd97fd5473eee906b4d7c2cb065178bfcbca8731", [:mix], [{:circuits_uart, "~> 1.0", [hex: :circuits_uart, repo: "hexpm", optional: false]}], "hexpm", "460dd1593770e30049d4328b632a699e809f9d05386e3ecbf99af96b019e0cb2"},
+}

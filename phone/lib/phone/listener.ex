@@ -38,15 +38,20 @@ defmodule Phone.Listener do
   end
 
   @impl GenServer
+  def handle_info({:circuits_uart, _pid, <<"+CLIP: \"", phone :: size(88), _data :: binary>>}, state) do
+    Logger.info("*** Ringing #{inspect(phone)}")
+    {:noreply, state}
+  end
+
+  @impl GenServer
   def handle_info({:circuits_uart, _pid, "RING"}, state) do
-    Logger.info("*** Ringing" , state)
+    Logger.info("*** Ringing")
     {:noreply, state}
   end
 
   @impl GenServer
   def handle_info(msg, state) do
     Logger.debug("***circuits: #{inspect(msg)}")
-    Logger.debug("***circuits: #{inspect(state)}")
     {:noreply, state}
   end
 end

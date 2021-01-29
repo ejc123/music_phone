@@ -39,6 +39,7 @@ defmodule Phone.Board do
   @impl GenServer
   def handle_cast(:listener_started, {uart_pid, _gpio, _gps_pid, _phone_pid} = state) do
     Logger.info("***Board starting listener")
+    Logger.info("***Board Listener: #{inspect(Process.whereis(:listener))}")
     UART.controlling_process(uart_pid, Process.whereis(:listener))
     Nerves.Runtime.validate_firmware()
     GenServer.cast(self(), :start_phone)
@@ -48,13 +49,12 @@ defmodule Phone.Board do
 
   @impl GenServer
   def handle_cast(:start, {uart_pid, _gpio, _gps_pid, _phone_pid} = state) do
-    Logger.info("***Board got start")
+    Logger.info("***Board got start uart_pid: #{inspect(uart_pid)}")
     {:noreply, state}
   end
 
   @impl GenServer
   def handle_cast(:start_phone, {uart_pid, gpio, gps_pid, phone_pid} = state) when phone_pid == 0 do
-    Logger.info("***start_phone: #{inspect(state)}")
     {:noreply, {uart_pid, gpio, gps_pid, Phone.start(uart_pid)}}
   end
 

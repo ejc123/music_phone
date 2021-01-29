@@ -38,7 +38,7 @@ defmodule Phone.Listener do
   end
 
   @impl GenServer
-  def handle_info({:circuits_uart, _pid, <<"+CLIP: \"", phone :: size(88), _data :: binary>>}, state) do
+  def handle_info({:circuits_uart, _pid, <<"+CLIP: \"", phone :: binary-size(11), _data :: binary>>}, state) do
     Logger.info("*** Ringing #{inspect(phone)}")
     {:noreply, state}
   end
@@ -46,6 +46,12 @@ defmodule Phone.Listener do
   @impl GenServer
   def handle_info({:circuits_uart, _pid, "RING"}, state) do
     Logger.info("*** Ringing")
+    {:noreply, state}
+  end
+
+  # blackhole blank messages
+  @impl GenServer
+  def handle_info({:circuits_uart, _pid, ""}, state) do
     {:noreply, state}
   end
 

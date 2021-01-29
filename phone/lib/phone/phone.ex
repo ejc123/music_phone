@@ -79,8 +79,9 @@ defmodule Phone.Phone do
   @impl GenServer
   def handle_cast({:start, uart_pid}, _state) do
     Logger.debug("***Phone :start")
+    UART.write(uart_pid, "ATZ")
+    :timer.sleep(500)
     ## Set up calling line presentation (caller id)
-    UART.write(uart_pid, "ATH")
     UART.write(uart_pid, "AT+CLIP=1")
     :timer.sleep(500)
     {:noreply, uart_pid}
@@ -89,8 +90,10 @@ defmodule Phone.Phone do
   @impl GenServer
   def handle_cast(:stop, uart_pid = state) do
     Logger.debug("***Phone :stop")
-    UART.write(uart_pid, "ATH")
+    UART.write(uart_pid, "ATZ")
+    :timer.sleep(500)
     UART.write(uart_pid, "AT+CLIP=0")
+    :timer.sleep(500)
     {:noreply, state}
   end
 

@@ -42,6 +42,7 @@ defmodule Phone.Board do
     Logger.info("***Board Listener: #{inspect(Process.whereis(:listener))}")
     UART.controlling_process(uart_pid, Process.whereis(:listener))
     Nerves.Runtime.validate_firmware()
+    :timer.sleep(1500)
     GenServer.cast(self(), :start_phone)
     #GenServer.cast(self(), :start_gps)
     {:noreply, state}
@@ -113,8 +114,9 @@ defmodule Phone.Board do
 
   # Reset Modem
   defp reset(pid) do
+    :timer.sleep(200)
     UART.write(pid, "ATZ")
-    :timer.sleep(500)
+    :timer.sleep(200)
   end
 
   defp toggle_power(gpio) do

@@ -18,12 +18,15 @@ defmodule Phone.Listener do
   @spec handle_continue(:start, any) :: {:noreply, any}
   def handle_continue(:start, state) do
     :timer.sleep(200)
-    GenServer.cast(:board , :listener_started)
+    GenServer.cast(:board, :listener_started)
     {:noreply, state}
   end
 
   @impl GenServer
-  def handle_info({:circuits_uart, _pid, <<"+CLIP: \"", phone :: binary-size(11), _data :: binary>>}, state) do
+  def handle_info(
+        {:circuits_uart, _pid, <<"+CLIP: \"", phone::binary-size(11), _data::binary>>},
+        state
+      ) do
     Logger.info("*** Ringing #{inspect(phone)}")
     {:noreply, state}
   end

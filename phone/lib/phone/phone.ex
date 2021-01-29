@@ -57,8 +57,9 @@ defmodule Phone.Phone do
   def handle_cast(:answer, uart_pid = state) do
     Logger.debug("***Phone :answer")
     UART.write(uart_pid, "ATA")
-    :timer.sleep(200)
-    {:noreply, state }
+    :timer.sleep(500)
+    GenServer.cast(self(), :start_audio)
+    {:noreply, state}
   end
 
   @impl GenServer
@@ -70,9 +71,26 @@ defmodule Phone.Phone do
   end
 
   @impl GenServer
-  def handle_cast(:play_audio, state) do
-    Logger.debug("***Phone :play_audio")
-    Toolshed.cmd("aplay -q /srv/erlang/lib/phone-0.1.0/priv/test.wav")
+  def handle_cast(:start_audio, state) do
+    Logger.debug("***Phone :start_audio")
+    Process.send_after(self(), :stop_audio, 25000)
+
+    Task.start(fn ->
+      System.cmd("/usr/bin/aplay", ["-q", "/srv/erlang/lib/phone-0.1.0/priv/test.wav"])
+    end)
+
+    {:noreply, state}
+  end
+
+  @impl GenServer
+  def handle_cast(:stop_audio, state) do
+    Logger.debug("***Phone :stop_audio")
+
+    Task.start(fn ->
+      System.cmd("/usr/bin/killall", ["aplay"])
+    end)
+
+    GenServer.cast(self(), :hangup)
     {:noreply, state}
   end
 
@@ -94,6 +112,12 @@ defmodule Phone.Phone do
     :timer.sleep(200)
     UART.write(uart_pid, "AT+CLIP=0")
     :timer.sleep(200)
+    {:noreply, state}
+  end
+
+  @impl GenServer
+  def handle_info(:stop_audio, state) do
+    GenServer.cast(self(), :stop_audio)
     {:noreply, state}
   end
 

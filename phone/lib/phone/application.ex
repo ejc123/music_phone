@@ -12,7 +12,7 @@ defmodule Phone.Application do
     children = [
       Phone.Board,
       Phone.Listener,
-      Phone.Phone,
+      Phone.Phone
     ]
 
     opts = [strategy: :one_for_one, name: Phone.Supervisor]

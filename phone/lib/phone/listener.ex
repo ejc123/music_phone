@@ -28,12 +28,20 @@ defmodule Phone.Listener do
         state
       ) do
     Logger.info("*** Ringing #{inspect(phone)}")
+    GenServer.cast(:phone, :answer)
     {:noreply, state}
   end
 
   @impl GenServer
   def handle_info({:circuits_uart, _pid, "RING"}, state) do
     Logger.info("*** Ringing")
+    {:noreply, state}
+  end
+
+  @impl GenServer
+  def handle_info({:circuits_uart, _pid, "NO CARRIER"}, state) do
+    Logger.info("*** NO CARRIER")
+    GenServer.cast(:phone, :hangup)
     {:noreply, state}
   end
 

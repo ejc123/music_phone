@@ -16,7 +16,16 @@ defmodule Phone.Board do
   @impl GenServer
   @spec init(any) :: {:ok, {0, 0, 0}, {:continue, :start}}
   def init(_state) do
+    Process.flag(:trap_exit, true)
     {:ok, {0, 0, 0}, {:continue, :start}}
+  end
+
+  @impl GenServer
+  def terminate(reason, {uart_pid, gpio, _phone_pid} = _state) do
+    Logger.info "terminating: #{inspect self()}: #{inspect reason}"
+    reset(uart_pid)
+    toggle_power(gpio)
+    :ok
   end
 
   # GenServer callbacks
@@ -42,7 +51,7 @@ defmodule Phone.Board do
     Logger.info("***Board Listener: #{inspect(Process.whereis(:listener))}")
     UART.controlling_process(uart_pid, Process.whereis(:listener))
     :timer.sleep(200)
-    GenServer.cast(self(), :start_phone)
+    GenServer.cast(self(), :start_board)
     Nerves.Runtime.validate_firmware()
     {:noreply, state}
   end
@@ -54,18 +63,18 @@ defmodule Phone.Board do
   end
 
   @impl GenServer
-  def handle_cast(:start_phone, {uart_pid, gpio, phone_pid} = _state) when phone_pid == 0 do
+  def handle_cast(:start_board, {uart_pid, gpio, phone_pid} = _state) when phone_pid == 0 do
     {:noreply, {uart_pid, gpio, Phone.start(uart_pid)}}
   end
 
   @impl GenServer
-  def handle_cast(:start_phone, state) do
-    Logger.info("***Board start_phone already started")
+  def handle_cast(:start_board, state) do
+    Logger.info("***Board start_board already started")
     {:noreply, state}
   end
 
   @impl GenServer
-  def handle_cast(:stop_phone, {uart_pid, gpio, _phone_pid} = _state) do
+  def handle_cast(:stop_board, {uart_pid, gpio, _phone_pid} = _state) do
     Phone.stop()
     {:noreply, {uart_pid, gpio, 0}}
   end

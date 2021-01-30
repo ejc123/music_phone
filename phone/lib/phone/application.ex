@@ -16,7 +16,7 @@ defmodule Phone.Application do
       Phone.Audio,
     ]
 
-    opts = [strategy: :one_for_one, name: Phone.Supervisor]
+    opts = [strategy: :one_for_all, name: Phone.Supervisor]
     Supervisor.start_link(children, opts)
   end
 end

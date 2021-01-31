@@ -55,7 +55,7 @@ defmodule Phone.Audio do
 
     {:ok, player_pid} =
       Task.start(fn ->
-        {output, status} = System.cmd("#{@path}/start.sh", ["#{@path}/test.wav"])
+        {output, status} = System.cmd("#{@path}/start.sh", ["#{@path}/bushel.mp3"])
         Logger.debug("***Task :played output: #{inspect(output)}, status: #{inspect(status)}")
 
         GenServer.cast(:phone, :hangup)

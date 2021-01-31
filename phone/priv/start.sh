@@ -6,7 +6,7 @@ then
 fi
 
 # Start the program in the background
-/usr/bin/aplay -q -d 30 --process-id-file /data/aplay.pid "$@" 
+/usr/bin/aplay -q -d 29 --process-id-file /data/aplay.pid "$@" 
 echo "Played Song"
 ret=$?
 exit $ret

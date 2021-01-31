@@ -1,6 +1,6 @@
 # BushelPhoneFw
 
-This project is the firmware module for the bushel_phone application
+This project is the firmware module for the music_phone application
 ## Targets
 
 Currently a custom rpi0 targest is supported: `modem_rpi0` 

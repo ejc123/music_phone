@@ -28,7 +28,7 @@ defmodule Phone.Listener do
         state
       ) do
     Logger.info("*** Ringing #{inspect(phone)}")
-    GenServer.cast(:phone, :answer)
+    GenServer.cast(:phone, {:answer, Phone.RateLimiter.log(phone)})
     {:noreply, state}
   end
 

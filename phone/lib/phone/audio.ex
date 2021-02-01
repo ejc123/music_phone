@@ -6,7 +6,7 @@ defmodule Phone.Audio do
   """
   require Logger
 
-  @path "/srv/erlang/lib/phone-0.1.0/priv"
+  @path "/srv/erlang/lib/phone-0.2.0/priv"
 
   # Startup
 
@@ -39,15 +39,16 @@ defmodule Phone.Audio do
   end
 
   @impl GenServer
-  def handle_cast(:start_audio, {_player} = _state) do
+  def handle_cast({:start_audio, file}, {_player} = _state) do
     Logger.debug("***Audio :start_audio")
 
+    Logger.debug("***Audio :start_audio file: #{inspect(file)}")
     {output, status} = System.cmd("#{@path}/stop.sh", [])
     Logger.debug("***Audio :stopping output: #{inspect(output)}, status: #{inspect(status)}")
 
     {:ok, player_pid} =
       Task.start(fn ->
-        {output, status} = System.cmd("#{@path}/start.sh", ["#{@path}/bushel.wav"])
+        {output, status} = System.cmd("#{@path}/start.sh", ["#{@path}/#{file}.wav"])
         Logger.debug("***Task :played output: #{inspect(output)}, status: #{inspect(status)}")
 
         GenServer.cast(:phone, :hangup)

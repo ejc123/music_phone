@@ -54,9 +54,9 @@ defmodule Phone.Phone do
   end
 
   @impl GenServer
-  def handle_cast(:answer, {uart_pid} = state) do
-    Logger.debug("***Phone :answer")
-    GenServer.cast(:audio, :start_audio)
+  def handle_cast({:answer, file}, {uart_pid} = state) do
+    Logger.debug("***Phone :answer file: #{inspect(file)}")
+    GenServer.cast(:audio, {:start_audio, file})
     :timer.sleep(200)
     UART.write(uart_pid, "ATA")
     :timer.sleep(500)

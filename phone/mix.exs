@@ -4,7 +4,7 @@ defmodule Phone.MixProject do
   def project do
     [
       app: :phone,
-      version: "0.1.0",
+      version: "0.2.0",
       elixir: "~> 1.10",
       elixirc_paths: elixirc_paths(Mix.env()),
       build_embedded: Mix.env() == :prod,
@@ -27,7 +27,8 @@ defmodule Phone.MixProject do
     [
       {:circuits_uart, "~> 1.4"},
       {:elixircom, "~> 0.2"},
-      {:circuits_gpio, "~> 0.4"}
+      {:circuits_gpio, "~> 0.4"},
+      {:persistent_ets, "~> 0.2.1"},
     ]
   end
 

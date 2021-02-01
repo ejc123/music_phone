@@ -2,7 +2,7 @@ defmodule Fw.MixProject do
   use Mix.Project
 
   @app :fw
-  @version "0.2.0"
+  @version "0.3.0"
   @all_targets [:modem_rpi0]
 
   def project do

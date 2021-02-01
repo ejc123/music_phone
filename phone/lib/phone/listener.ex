@@ -24,7 +24,7 @@ defmodule Phone.Listener do
 
   @impl GenServer
   def handle_info(
-        {:circuits_uart, _pid, <<"+CLIP: \"+", phone::binary-size(11), _data::binary>>},
+        {:circuits_uart, _pid, <<"+CLIP: \"", phone::binary-size(12), _data::binary>>},
         state
       ) do
     Logger.info("*** Ringing #{inspect(phone)}")

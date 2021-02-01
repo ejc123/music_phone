@@ -21,9 +21,8 @@ defmodule Phone.Board do
   end
 
   @impl GenServer
-  def terminate(reason, {uart_pid, gpio, _phone_pid} = _state) do
-    Logger.info "terminating: #{inspect self()}: #{inspect reason}"
-    reset(uart_pid)
+  def terminate(reason, {_uart_pid, gpio, _phone_pid} = _state) do
+    Logger.info("***Board: terminating: #{inspect(self())}: #{inspect(reason)}")
     toggle_power(gpio)
     :ok
   end
@@ -105,15 +104,7 @@ defmodule Phone.Board do
       )
 
     Logger.debug("***UART open")
-    reset(uart_pid)
     {uart_pid, gpio, 0}
-  end
-
-  # Reset Modem
-  defp reset(pid) do
-    :timer.sleep(200)
-    UART.write(pid, "ATZ")
-    :timer.sleep(200)
   end
 
   defp toggle_power(gpio) do

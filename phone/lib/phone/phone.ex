@@ -18,7 +18,7 @@ defmodule Phone.Phone do
 
   @spec start(any) :: pid
   def start(uart_pid) do
-    Logger.debug("***Phone: start self PID: #{inspect(self())}")
+    Logger.info("***Phone: start self PID: #{inspect(self())}")
     GenServer.cast(:phone, {:start, uart_pid})
     self()
   end
@@ -75,8 +75,7 @@ defmodule Phone.Phone do
   @impl GenServer
   def handle_cast({:start, uart_pid}, _state) do
     Logger.debug("***Phone :start")
-    UART.write(uart_pid, "ATZ")
-    :timer.sleep(200)
+    reset(uart_pid)
     ## Set up calling line presentation (caller id)
     UART.write(uart_pid, "AT+CLIP=1")
     :timer.sleep(200)
@@ -86,15 +85,22 @@ defmodule Phone.Phone do
   @impl GenServer
   def handle_cast(:stop, {uart_pid} = _state) do
     Logger.debug("***Phone :stop")
-    UART.write(uart_pid, "ATZ")
-    :timer.sleep(200)
+    reset(uart_pid)
     UART.write(uart_pid, "AT+CLIP=0")
     :timer.sleep(200)
     {:noreply, {uart_pid}}
   end
+
   @impl GenServer
   def handle_info(message, state) do
     Logger.info("Other message #{inspect(message)}")
     {:noreply, state}
+  end
+
+  # Reset Modem
+  defp reset(pid) do
+    :timer.sleep(200)
+    UART.write(pid, "ATZ")
+    :timer.sleep(200)
   end
 end

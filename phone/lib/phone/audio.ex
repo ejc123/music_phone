@@ -19,7 +19,7 @@ defmodule Phone.Audio do
 
   @spec start() :: pid
   def start() do
-    Logger.debug("***Audio: start self PID: #{inspect(self())}")
+    Logger.info("***Audio: start self PID: #{inspect(self())}")
     GenServer.cast(:audio, :start)
     self()
   end
@@ -39,23 +39,15 @@ defmodule Phone.Audio do
   end
 
   @impl GenServer
-  def handle_cast(:start_audio, {player} = _state) do
+  def handle_cast(:start_audio, {_player} = _state) do
     Logger.debug("***Audio :start_audio")
 
     {output, status} = System.cmd("#{@path}/stop.sh", [])
     Logger.debug("***Audio :stopping output: #{inspect(output)}, status: #{inspect(status)}")
 
-    #case player != -1 && Process.alive?(player) do
-    #  true ->
-    #    Process.exit(player, :kill)
-#
-#      _ ->
-#        false
-#    end
-
     {:ok, player_pid} =
       Task.start(fn ->
-        {output, status} = System.cmd("#{@path}/start.sh", ["#{@path}/bushel.mp3"])
+        {output, status} = System.cmd("#{@path}/start.sh", ["#{@path}/bushel.wav"])
         Logger.debug("***Task :played output: #{inspect(output)}, status: #{inspect(status)}")
 
         GenServer.cast(:phone, :hangup)
@@ -65,20 +57,10 @@ defmodule Phone.Audio do
   end
 
   @impl GenServer
-  def handle_cast(:stop_audio, {player_pid} = _state) do
+  def handle_cast(:stop_audio, {_player_pid} = _state) do
     Logger.debug("***Audio :stop_audio2")
-
     {output, status} = System.cmd("#{@path}/stop.sh", [])
     Logger.debug("***Audio :stop_audio2 output: #{inspect(output)}, status: #{inspect(status)}")
-
-#    case player_pid != -1 && Process.alive?(player_pid) do
-#      true ->
-#        Process.exit(player_pid, :kill)
-#
-#      _ ->
-#        false
-#    end
-
     {:noreply, {-1}}
   end
 

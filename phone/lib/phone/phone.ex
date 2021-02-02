@@ -43,10 +43,9 @@ defmodule Phone.Phone do
   defstruct [:uart_pid]
 
   @impl GenServer
-  @spec init(%{:uart_pid => any, optional(any) => any}) ::
-          {:ok, %{:uart_pid => -1, optional(any) => any}}
-  def init(state) do
-    {:ok, %{state | uart_pid: -1}}
+  @spec init(any) :: {:ok, %{uart_pid: -1}}
+  def init(_state) do
+    {:ok, %{uart_pid: -1}}
   end
 
   @impl GenServer

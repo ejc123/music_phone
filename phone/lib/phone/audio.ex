@@ -34,10 +34,9 @@ defmodule Phone.Audio do
   defstruct [:player_pid]
 
   @impl GenServer
-  @spec init(%{:player_pid => any, optional(any) => any}) ::
-          {:ok, %{:player_pid => -1, optional(any) => any}}
-  def init(state) do
-    {:ok, %{state | player_pid: -1}}
+  @spec init(any) :: {:ok, %{player_pid: -1}}
+  def init(_state) do
+    {:ok, %{player_pid: -1}}
   end
 
   @impl GenServer

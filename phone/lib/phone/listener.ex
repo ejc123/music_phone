@@ -13,16 +13,15 @@ defmodule Phone.Listener do
   # Callbacks
 
   @impl GenServer
-  @spec init(any) :: {:ok, any}
+  @spec init(any) :: {:ok, {any}, {:continue, :start}}
   def init(state) do
     Logger.info("***Listener start PID: #{inspect(self())}")
-    {:ok, state}
+    {:ok, {state}, {:continue, :start}}
   end
 
   @impl GenServer
   @spec handle_continue(:start, any) :: {:noreply, any}
   def handle_continue(:start, state) do
-    :timer.sleep(200)
     GenServer.cast(:board, :listener_started)
     {:noreply, state}
   end

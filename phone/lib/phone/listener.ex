@@ -1,18 +1,23 @@
 defmodule Phone.Listener do
+  @moduledoc """
+    This modules handles messages from the UART
+  """
   use GenServer
   require Logger
+
+  # Startup
 
   @spec start_link(any) :: :ignore | {:error, any} | {:ok, pid}
   def start_link(opts), do: GenServer.start_link(__MODULE__, opts, name: :listener)
 
-  @impl GenServer
-  @spec init(any) :: {:ok, {-1, false}, {:continue, :start}}
-  def init(_state) do
-    Logger.debug("Listener Started, PID: #{inspect(self())}")
-    {:ok, {-1, false}, {:continue, :start}}
-  end
+  # Callbacks
 
-  # Handle messages from UART
+  @impl GenServer
+  @spec init(any) :: {:ok, any}
+  def init(state) do
+    Logger.info("***Listener start PID: #{inspect(self())}")
+    {:ok, state}
+  end
 
   @impl GenServer
   @spec handle_continue(:start, any) :: {:noreply, any}
@@ -27,14 +32,13 @@ defmodule Phone.Listener do
         {:circuits_uart, _pid, <<"+CLIP: \"", phone::binary-size(12), _data::binary>>},
         state
       ) do
-    Logger.info("*** Ringing #{inspect(phone)}")
+    Logger.info("***Listener Ringing #{inspect(phone)}")
     GenServer.cast(:phone, {:answer, Phone.RateLimiter.log(phone)})
     {:noreply, state}
   end
 
   @impl GenServer
   def handle_info({:circuits_uart, _pid, "RING"}, state) do
-    Logger.info("*** Ringing")
     {:noreply, state}
   end
 
@@ -52,8 +56,8 @@ defmodule Phone.Listener do
   end
 
   @impl GenServer
-  def handle_info(msg, state) do
-    Logger.debug("***circuits: #{inspect(msg)}")
+  def handle_info(message, state) do
+    Logger.info("***Listener other message #{inspect(message)}")
     {:noreply, state}
   end
 end

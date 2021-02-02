@@ -1,5 +1,3 @@
 defmodule Fw do
-  @moduledoc """
-  Documentation for PhoneTest.
-  """
+  @moduledoc false
 end

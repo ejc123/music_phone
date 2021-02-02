@@ -1,27 +1,33 @@
 defmodule Phone.Board do
+  @moduledoc """
+    Initialize modem board and UART
+  """
   use GenServer
 
   alias Phone.Phone
   alias Circuits.UART
   alias Circuits.GPIO
 
-  @moduledoc """
-    Set up Modem board
-  """
   require Logger
+
+  # Startup
 
   @spec start_link(any) :: :ignore | {:error, any} | {:ok, pid}
   def start_link(opts), do: GenServer.start_link(__MODULE__, opts, name: :board)
 
+  # Callbacks
+
+  defstruct [:uart_pid, :gpio_ref, :phone_pid]
+
   @impl GenServer
-  @spec init(any) :: {:ok, {0, 0, 0}, {:continue, :start}}
+  @spec init(any) :: {:ok, %{gpio_ref: -1, phone_pid: -1, uart_pid: -1}, {:continue, :start}}
   def init(_state) do
     Process.flag(:trap_exit, true)
-    {:ok, {0, 0, 0}, {:continue, :start}}
+    {:ok, %{uart_pid: -1, gpio_ref: -1, phone_pid: -1}, {:continue, :start}}
   end
 
   @impl GenServer
-  def terminate(reason, {_uart_pid, gpio, _phone_pid} = _state) do
+  def terminate(reason, %{gpio_ref: gpio} = _state) do
     Logger.info("***Board: terminating: #{inspect(self())}: #{inspect(reason)}")
     toggle_power(gpio)
     :ok
@@ -29,26 +35,16 @@ defmodule Phone.Board do
 
   # GenServer callbacks
   @impl GenServer
-  @spec handle_continue(:start, any) :: {:noreply, {pid, reference, 0}}
-  def handle_continue(:start, _state) do
-    tty = "ttyAMA0"
-
-    options = [
-      speed: 115_200,
-      active: true,
-      framing: {UART.Framing.Line, separator: "\r\n"},
-      id: :pid
-    ]
-
-    {uart_pid, gpio, phone_pid} = start(tty, options)
-    {:noreply, {uart_pid, gpio, phone_pid}}
+  def handle_continue(:start, state) do
+    {uart, gpio} = start("ttyAMA0")
+    Logger.info("***Board started uart_pid: #{inspect(uart)} gpio_ref: #{inspect(gpio)}")
+    {:noreply, %{state | uart_pid: uart, gpio_ref: gpio, phone_pid: -1}}
   end
 
   @impl GenServer
-  def handle_cast(:listener_started, {uart_pid, _gpio, _phone_pid} = state) do
-    Logger.info("***Board starting listener")
-    Logger.info("***Board Listener: #{inspect(Process.whereis(:listener))}")
-    UART.controlling_process(uart_pid, Process.whereis(:listener))
+  def handle_cast(:listener_started, %{uart_pid: uart} = state) do
+    Logger.info("***Board listener: #{inspect(Process.whereis(:listener))}")
+    UART.controlling_process(uart, Process.whereis(:listener))
     :timer.sleep(200)
     GenServer.cast(self(), :start_board)
     Nerves.Runtime.validate_firmware()
@@ -56,14 +52,14 @@ defmodule Phone.Board do
   end
 
   @impl GenServer
-  def handle_cast(:start, {uart_pid, _gpio, _phone_pid} = state) do
-    Logger.info("***Board got start uart_pid: #{inspect(uart_pid)}")
+  def handle_cast(:start, state) do
+    Logger.info("***Board start PID: #{inspect(self())}")
     {:noreply, state}
   end
 
   @impl GenServer
-  def handle_cast(:start_board, {uart_pid, gpio, phone_pid} = _state) when phone_pid == 0 do
-    {:noreply, {uart_pid, gpio, Phone.start(uart_pid)}}
+  def handle_cast(:start_board, %{uart_pid: uart, phone_pid: phone} = state) when phone == -1 do
+    {:noreply, %{state | phone_pid: Phone.start(uart)}}
   end
 
   @impl GenServer
@@ -73,30 +69,29 @@ defmodule Phone.Board do
   end
 
   @impl GenServer
-  def handle_cast(:stop_board, {uart_pid, gpio, _phone_pid} = _state) do
+  def handle_cast(:stop_board, state) do
     Phone.stop()
-    {:noreply, {uart_pid, gpio, 0}}
+    {:noreply, %{state | phone_pid: -1}}
   end
 
   # private functions
-  defp start(_tty, _options) do
+  defp start(tty) do
     {:ok, gpio} = GPIO.open(4, :output)
-    Logger.info("***start, Toggle Power")
+    Logger.debug("***start, gpio_ref: #{inspect(gpio)}")
+    Logger.debug("***start, Toggle Power")
     toggle_power(gpio)
     :timer.sleep(1500)
     toggle_power(gpio)
     # Pause to let modem reset before we query it
     :timer.sleep(2000)
-    Logger.info("***start, Toggle Power")
 
-    Logger.info("***start, gpio_pid: #{inspect(gpio)}")
     {:ok, uart_pid} = UART.start_link()
-    Logger.info("***start, uart_pid: #{inspect(uart_pid)}")
+    Logger.debug("***start, uart_pid: #{inspect(uart_pid)}")
 
     :ok =
       UART.open(
         uart_pid,
-        "ttyAMA0",
+        tty,
         speed: 115_200,
         active: true,
         framing: {UART.Framing.Line, separator: "\r\n"},
@@ -104,7 +99,7 @@ defmodule Phone.Board do
       )
 
     Logger.debug("***UART open")
-    {uart_pid, gpio, 0}
+    {uart_pid, gpio}
   end
 
   defp toggle_power(gpio) do

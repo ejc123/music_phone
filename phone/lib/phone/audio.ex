@@ -1,9 +1,9 @@
 defmodule Phone.Audio do
-  use GenServer
-
   @moduledoc """
     Set up and use the Audio feature
   """
+  use GenServer
+
   require Logger
 
   @path "/srv/erlang/lib/phone-0.2.0/priv"
@@ -19,7 +19,7 @@ defmodule Phone.Audio do
 
   @spec start() :: pid
   def start() do
-    Logger.info("***Audio: start self PID: #{inspect(self())}")
+    Logger.info("***Audio: start PID: #{inspect(self())}")
     GenServer.cast(:audio, :start)
     self()
   end
@@ -29,19 +29,19 @@ defmodule Phone.Audio do
     GenServer.cast(:audio, :stop)
   end
 
-  # Server
+  # Callbacks
+
+  defstruct [:player_pid]
 
   @impl GenServer
-  @spec init(any) :: {:ok, {-1}}
-  def init(_state) do
-    Logger.debug("***Audio init PID: #{inspect(self())}")
-    {:ok, {-1}}
+  @spec init(%{:player_pid => any, optional(any) => any}) ::
+          {:ok, %{:player_pid => -1, optional(any) => any}}
+  def init(state) do
+    {:ok, %{state | player_pid: -1}}
   end
 
   @impl GenServer
-  def handle_cast({:start_audio, file}, {_player} = _state) do
-    Logger.debug("***Audio :start_audio")
-
+  def handle_cast({:start_audio, file}, state) do
     Logger.debug("***Audio :start_audio file: #{inspect(file)}")
     {output, status} = System.cmd("#{@path}/stop.sh", [])
     Logger.debug("***Audio :stopping output: #{inspect(output)}, status: #{inspect(status)}")
@@ -54,41 +54,34 @@ defmodule Phone.Audio do
         GenServer.cast(:phone, :hangup)
       end)
 
-    {:noreply, {player_pid}}
+    {:noreply, %{state | player_pid: player_pid}}
   end
 
   @impl GenServer
-  def handle_cast(:stop_audio, {_player_pid} = _state) do
-    Logger.debug("***Audio :stop_audio2")
+  def handle_cast(:stop_audio, state) do
+    Logger.debug("***Audio :stop_audio")
     {output, status} = System.cmd("#{@path}/stop.sh", [])
-    Logger.debug("***Audio :stop_audio2 output: #{inspect(output)}, status: #{inspect(status)}")
-    {:noreply, {-1}}
+    Logger.debug("***Audio :stop_audio output: #{inspect(output)}, status: #{inspect(status)}")
+    {:noreply, %{state | player_pid: -1}}
   end
 
   @impl GenServer
-  def handle_cast(:start, _state) do
+  def handle_cast(:start, state) do
     Logger.debug("***Audio :start")
     GenServer.cast(:audio, :stop_audio)
-    {:noreply, {-1}}
+    {:noreply, %{state | player_pid: -1}}
   end
 
   @impl GenServer
-  def handle_cast(:stop, _state) do
+  def handle_cast(:stop, state) do
     Logger.debug("***Audio :stop")
     GenServer.cast(self(), :stop_audio)
-    {:noreply, {-1}}
-  end
-
-  @impl GenServer
-  def handle_info(:stop_audio, state) do
-    Logger.info("***Audio INFO :stop_audio")
-    GenServer.cast(:audio, :stop_audio)
-    {:noreply, state}
+    {:noreply, %{state | player_pid: -1}}
   end
 
   @impl GenServer
   def handle_info(message, state) do
-    Logger.info("Other message #{inspect(message)}")
+    Logger.info("***Audio other message #{inspect(message)}")
     {:noreply, state}
   end
 end

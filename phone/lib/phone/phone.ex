@@ -1,9 +1,9 @@
 defmodule Phone.Phone do
+  @moduledoc """
+    Set up and use phone
+  """
   use GenServer
 
-  @moduledoc """
-    Set up and use the Phone feature
-  """
   require Logger
   alias Circuits.UART
 
@@ -18,7 +18,7 @@ defmodule Phone.Phone do
 
   @spec start(any) :: pid
   def start(uart_pid) do
-    Logger.info("***Phone: start self PID: #{inspect(self())}")
+    Logger.info("***Phone: start PID: #{inspect(self())}")
     GenServer.cast(:phone, {:start, uart_pid})
     self()
   end
@@ -38,66 +38,67 @@ defmodule Phone.Phone do
     GenServer.cast(:phone, :hangup)
   end
 
-  # Server
+  # Callbacks
+
+  defstruct [:uart_pid]
 
   @impl GenServer
-  @spec init(any) :: {:ok, {-1}}
-  def init(_state) do
-    Logger.debug("***Phone: init PID: #{inspect(self())}")
-    {:ok, {-1}}
+  @spec init(%{:uart_pid => any, optional(any) => any}) ::
+          {:ok, %{:uart_pid => -1, optional(any) => any}}
+  def init(state) do
+    {:ok, %{state | uart_pid: -1}}
   end
 
   @impl GenServer
-  def handle_call(:get_uart, pid, {uart_pid} = state) do
+  def handle_call(:get_uart, pid, %{uart_pid: upid} = state) do
     Logger.debug("***Phone: get_uart from #{inspect(pid)}")
-    {:reply, uart_pid, state}
+    {:reply, upid, state}
   end
 
   @impl GenServer
-  def handle_cast({:answer, file}, {uart_pid} = state) do
+  def handle_cast({:answer, file}, %{uart_pid: upid} = state) do
     Logger.debug("***Phone :answer file: #{inspect(file)}")
     GenServer.cast(:audio, {:start_audio, file})
     :timer.sleep(200)
-    UART.write(uart_pid, "ATA")
+    UART.write(upid, "ATA")
     :timer.sleep(500)
     {:noreply, state}
   end
 
   @impl GenServer
-  def handle_cast(:hangup, {uart_pid} = state) do
+  def handle_cast(:hangup, %{uart_pid: upid} = state) do
     Logger.debug("***Phone :hangup")
-    UART.write(uart_pid, "ATH")
+    UART.write(upid, "ATH")
     :timer.sleep(200)
     GenServer.cast(:audio, :stop_audio)
     {:noreply, state}
   end
 
   @impl GenServer
-  def handle_cast({:start, uart_pid}, _state) do
+  def handle_cast({:start, uart_pid}, state) do
     Logger.debug("***Phone :start")
     reset(uart_pid)
     ## Set up calling line presentation (caller id)
     UART.write(uart_pid, "AT+CLIP=1")
     :timer.sleep(200)
-    {:noreply, {uart_pid}}
+    {:noreply, %{state | uart_pid: uart_pid}}
   end
 
   @impl GenServer
-  def handle_cast(:stop, {uart_pid} = _state) do
+  def handle_cast(:stop, %{uart_pid: upid} = state) do
     Logger.debug("***Phone :stop")
-    reset(uart_pid)
-    UART.write(uart_pid, "AT+CLIP=0")
+    reset(upid)
+    UART.write(upid, "AT+CLIP=0")
     :timer.sleep(200)
-    {:noreply, {uart_pid}}
+    {:noreply, state}
   end
 
   @impl GenServer
   def handle_info(message, state) do
-    Logger.info("Other message #{inspect(message)}")
+    Logger.info("***Phone other message #{inspect(message)}")
     {:noreply, state}
   end
 
-  # Reset Modem
   defp reset(pid) do
     :timer.sleep(200)
     UART.write(pid, "ATZ")

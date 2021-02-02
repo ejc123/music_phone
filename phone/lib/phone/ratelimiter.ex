@@ -28,13 +28,12 @@ defmodule Phone.RateLimiter do
   ## Server
   def init(_) do
     Logger.debug("RateLimiter starting #{inspect(self())}")
+
     @tab =
       PersistentEts.new(@tab, "/data/numbers.tab", [
         :set,
         :named_table,
-        :public,
-        read_concurrency: true
-#        write_concurrency: true
+        :public
       ])
 
     schedule_sweep()

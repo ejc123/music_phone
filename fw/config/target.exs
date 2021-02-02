@@ -51,21 +51,20 @@ config :vintage_net,
   regulatory_domain: "US",
   config: [
     {"usb0", %{type: VintageNetDirect}},
-    {"eth0",
+    {"wlan0",
      %{
-       type: VintageNetEthernet,
+       type: VintageNetWiFi,
+       vintage_net_wifi: %{
+         networks: [
+           %{
+             key_mgmt: :wpa_psk,
+             ssid: System.get_env("NERVES_NETWORK_SSID"),
+             psk: System.get_env("NERVES_NETWORK_PSK")
+           }
+         ]
+       },
        ipv4: %{method: :dhcp}
-     }},
-    {"wlan0", %{type: VintageNetWiFi,
-      vintage_net_wifi: %{
-        key_mgmt: :wpa_psk,
-        mode: :client,
-        ssid: System.get_env("NERVES_NETWORK_SSID"),
-        psk:  System.get_env("NERVES_NETWORK_PSK"),
-      },
-      ipv4: %{method: :dhcp}
-      }
-    }
+     }}
   ]
 
 config :mdns_lite,
@@ -99,9 +98,3 @@ config :mdns_lite,
       port: 4369
     }
   ]
-
-# Import target specific config. This must remain at the bottom
-# of this file so it overrides the configuration defined above.
-# Uncomment to use target specific configurations
-
-# import_config "#{Mix.target()}.exs"

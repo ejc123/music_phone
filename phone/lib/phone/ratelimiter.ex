@@ -19,6 +19,12 @@ defmodule Phone.RateLimiter do
     end
   end
 
+  def dump() do
+    phones = :ets.tab2list(@tab)
+    Logger.info("Phone Numbers: #{inspect(phones)}")
+    {:ok, phones}
+  end
+
   ## Server
   def init(_) do
     Logger.debug("RateLimiter starting #{inspect(self())}")

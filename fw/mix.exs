@@ -3,7 +3,7 @@ defmodule Fw.MixProject do
 
   @app :fw
   @version "0.3.0"
-  @all_targets [:modem_rpi0]
+  @all_targets [:rpi0]
 
   def project do
     [
@@ -52,8 +52,7 @@ defmodule Fw.MixProject do
       {:nerves_time, "~> 0.4", targets: @all_targets},
 
       # Dependencies for specific targets
-      {:modem_rpi0, path: "../../modem_rpi0", runtime: false, targets: :modem_rpi0},
-
+      {:nerves_system_rpi0, "~> 1.13.3", runtime: false, targets: :rpi0},
     ]
   end
 

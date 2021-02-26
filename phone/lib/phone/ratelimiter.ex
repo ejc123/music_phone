@@ -4,8 +4,8 @@ defmodule Phone.RateLimiter do
   use GenServer
   require Logger
 
-  @max_per_period 2
-  @sweep_after :timer.seconds(8 * 3600)
+  @max_per_period Application.get_env(:phone, :limit)
+  @sweep_after :timer.seconds(Application.get_env(:phone, :time))
   @tab :numbers
 
   ## Client
@@ -18,8 +18,8 @@ defmodule Phone.RateLimiter do
   @spec log(any) :: <<_::40, _::_*8>>
   def log(phone) do
     case :ets.update_counter(@tab, phone, {2, 1}, {phone, 0}) do
-      count when count > @max_per_period -> "never"
-      _count -> "bushel"
+      count when count > @max_per_period -> Application.get_env(:phone, :limitWav)
+      _count -> Application.get_env(:phone, :normalWav)
     end
   end
 

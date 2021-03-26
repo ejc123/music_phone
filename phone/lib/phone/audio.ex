@@ -37,6 +37,7 @@ defmodule Phone.Audio do
   @impl GenServer
   @spec init(any) :: {:ok, %{player_pid: -1}}
   def init(_state) do
+    Logger.debug("***Audio :init path: #{@path}")
     {:ok, %{player_pid: -1}}
   end
 

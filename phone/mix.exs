@@ -4,13 +4,14 @@ defmodule Phone.MixProject do
   def project do
     [
       app: :phone,
-      version: "0.2.0",
+      version: "0.3.0",
       elixir: "~> 1.10",
       elixirc_paths: elixirc_paths(Mix.env()),
       build_embedded: Mix.env() == :prod,
       start_permanent: Mix.env() == :prod,
       deps: deps(),
-      aliases: aliases()
+      aliases: aliases(),
+      xref: [exclude: [Nerves.Runtime]],
     ]
   end
 

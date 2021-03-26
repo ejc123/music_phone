@@ -6,7 +6,8 @@ defmodule Phone.Audio do
 
   require Logger
 
-  @path "/srv/erlang/lib/phone-0.2.0/priv"
+  @version Mix.Project.config[:version]
+  @path "/srv/erlang/lib/phone-#{@version}/priv"
 
   # Startup
 
@@ -47,7 +48,7 @@ defmodule Phone.Audio do
 
     {:ok, player_pid} =
       Task.start(fn ->
-        {output, status} = System.cmd("#{@path}/start.sh", ["#{@path}/#{file}.wav"])
+        {output, status} = System.cmd("#{@path}/start.sh", ["#{@path}/#{file}"])
         Logger.debug("***Task :played output: #{inspect(output)}, status: #{inspect(status)}")
 
         GenServer.cast(:phone, :hangup)

@@ -47,14 +47,15 @@ config :nerves_ssh,
 
   ssid = System.get_env("NERVES_NETWORK_SSID")
   psk =  System.get_env("NERVES_NETWORK_PSK")
+  no_wifi =  System.get_env("NERVES_NETWORK_NO_WIFI")
 
-if ssid == nil,
+if ssid == nil and no_wifi == nil,
   do:
     Mix.raise("""
     You have not set an SSID for wireless networking
     """)
 
-if psk == nil,
+if psk == nil and no_wifi == nil,
   do:
     Mix.raise("""
     You have not set an PSK for wireless networking

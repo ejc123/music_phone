@@ -45,12 +45,27 @@ if keys == [],
 config :nerves_ssh,
   authorized_keys: Enum.map(keys, &File.read!/1)
 
+  ssid = System.get_env("NERVES_NETWORK_SSID")
+  psk =  System.get_env("NERVES_NETWORK_PSK")
+
+if ssid == nil,
+  do:
+    Mix.raise("""
+    You have not set an SSID for wireless networking
+    """)
+
+if psk == nil,
+  do:
+    Mix.raise("""
+    You have not set an PSK for wireless networking
+    """)
+
 # Configure the network using vintage_net
 # See https://github.com/nerves-networking/vintage_net for more information
 config :vintage_net,
   regulatory_domain: "US",
   config: [
-    {"usb0", %{type: VintageNetDirect}},
+#    {"usb0", %{type: VintageNetDirect}},
     {"wlan0",
      %{
        type: VintageNetWiFi,
@@ -58,8 +73,8 @@ config :vintage_net,
          networks: [
            %{
              key_mgmt: :wpa_psk,
-             ssid: System.get_env("NERVES_NETWORK_SSID"),
-             psk: System.get_env("NERVES_NETWORK_PSK")
+             ssid: ssid,
+             psk: psk
            }
          ]
        },

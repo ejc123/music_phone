@@ -2,15 +2,15 @@ defmodule Fw.MixProject do
   use Mix.Project
 
   @app :fw
-  @version "0.3.0"
+  @version "0.3.1"
   @all_targets [:rpi0]
 
   def project do
     [
       app: @app,
       version: @version,
-      elixir: "~> 1.9",
-      archives: [nerves_bootstrap: "~> 1.9"],
+      elixir: "~> 1.12",
+      archives: [nerves_bootstrap: "~> 1.10"],
       start_permanent: Mix.env() == :prod,
       build_embedded: true,
       aliases: [loadconfig: [&bootstrap/1]],
@@ -52,7 +52,7 @@ defmodule Fw.MixProject do
       {:nerves_time, "~> 0.4", targets: @all_targets},
 
       # Dependencies for specific targets
-      {:nerves_system_rpi0, "~> 1.13.3", runtime: false, targets: :rpi0},
+      {:nerves_system_rpi0, "~> 1.16", runtime: false, targets: :rpi0},
     ]
   end
 
